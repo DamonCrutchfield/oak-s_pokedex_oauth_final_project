@@ -1,6 +1,8 @@
 const express = require("express");
 const basicAuth = require('express-basic-auth');
 const bcrypt = require('bcrypt');
+const cors = require("cors");
+
 
 const {User, Pokemon} = require('./models');
 
@@ -9,7 +11,7 @@ const app = express();
 
 // specify out request bodies are json
 app.use(express.json());
-
+app.use(cors());
 //compares username + password with what's in the database
 // Returns boolean indicating if password matches
 async function dbAuthorizer(username, password, callback){
@@ -17,8 +19,6 @@ async function dbAuthorizer(username, password, callback){
     // get user from DB
     const user = await User.findOne({where: {name: username}})
     // isValid == true if user exists and passwords match, false if no user or passwords don't match
-    // let passwordHash = await bcrypt.hash(user.password, 2);
-    // console.log(user.password, passwordHash)
     let isValid = (user != null) ? await bcrypt.compare(password, user.password) : false;
     callback(null, isValid); //callback expects null as first argument
   } catch(err) {
@@ -36,6 +36,12 @@ app.use(basicAuth({
 app.get('/', (req, res) => {
   res.send('<h1>Hello!!!!</h1>')
 })
+
+app.use('/login', (req, res) => {
+  res.send({
+    token: 'test123'
+  });
+});
 
 app.get('/pokemon', async (req, res) => {
     let pokemon = await Pokemon.findAll()
